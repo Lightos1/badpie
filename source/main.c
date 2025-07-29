@@ -113,6 +113,9 @@ int main() {
         consoleUpdate(NULL);
 
 
+        /* This method of calculating pi is terrible, but it's bad enough so that precision doesn't run out too early. */
+        /* I do not want to deal with types above double yet. */
+        /* Don't kill me for this, it works ok and is not too optimal unlike the other method. */
         for (u32 i = 0; i < n; i++) {
             if (logging && ((i + 1) % 10000 == 0 || i == n - 1)) {
                 printf("Loop: %d\n", i + 1);
