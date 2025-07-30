@@ -4,56 +4,36 @@
 #include <switch.h>
 #include <time.h>
 
-#define N_MIN 100
-#define N_MAX 1000000000
-
-void printSetupScreen(u32 n, bool logging) {
-    consoleClear();
-    printf("\n\nPress D-Right to increase, D-Left to decrease\n");
-    printf("Press A to start\n");
-    printf("Press Plus to exit\n");
-    printf("Press Y to toggle logging (%s)\n", logging ? "ON" : "OFF");
-    printf("Iterations: %d\n", n);
-    consoleUpdate(NULL);
-}
-void exitCleanly() {
-    consoleClear();
-    consoleUpdate(NULL);
-    svcSleepThread(100000000);
-    consoleExit(NULL);
-}
+#include "main.h"
 
 int main() {
     consoleInit(NULL);
+    srand(time(NULL));
 
     padConfigureInput(1, HidNpadStyleSet_NpadStandard);
-
     PadState pad;
     padInitializeDefault(&pad);
-    srand(time(NULL));
+
     bool finished = false;
     bool setup = true;
-    bool logging = true;
+    bool logging = false;
+
     u32 n = 1000000;
 
     while (appletMainLoop()) {
-
         if (setup) {
             printSetupScreen(n, logging);
 
             consoleUpdate(NULL);
-
             while (true) {
                 padUpdate(&pad);
                 u64 kDown = padGetButtonsDown(&pad);
 
                 if ((kDown & HidNpadButton_Left) && n > N_MIN) {
                     n /= 10;
-
                     printSetupScreen(n, logging);
                 } else if ((kDown & HidNpadButton_Right) && n < N_MAX) {
                     n *= 10;
-
                     printSetupScreen(n, logging);
                 } else if (kDown & HidNpadButton_Y) {
                     logging = !logging;
@@ -70,7 +50,6 @@ int main() {
         }
 
         padUpdate(&pad);
-
         u64 kDown = padGetButtonsDown(&pad);
 
         if (kDown & HidNpadButton_Plus) {
@@ -112,7 +91,6 @@ int main() {
         consoleClear();
         consoleUpdate(NULL);
 
-
         /* This method of calculating pi is terrible, but it's bad enough so that precision doesn't run out too early. */
         /* I do not want to deal with types above double yet. */
         /* Don't kill me for this, it works ok and is not too optimal unlike the other method. */
@@ -138,7 +116,25 @@ int main() {
 
         printf("\n\nPI: %f\n", result);
         printf("Time taken: %.2f seconds\n", duration);
+
         finished = true;
         consoleUpdate(NULL);
     }
+}
+
+void printSetupScreen(u32 n, bool logging) {
+    consoleClear();
+    printf("\n\nPress D-Right to increase, D-Left to decrease\n");
+    printf("Press A to start\n");
+    printf("Press Plus to exit\n");
+    printf("Press Y to toggle logging (%s)\n", logging ? "ON" : "OFF");
+    printf("Iterations: %d\n", n);
+    consoleUpdate(NULL);
+}
+
+void exitCleanly() {
+    consoleClear();
+    consoleUpdate(NULL);
+    svcSleepThread(100000000);
+    consoleExit(NULL);
 }
