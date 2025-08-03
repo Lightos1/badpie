@@ -16,11 +16,11 @@ int main() {
 
     bool finished = false;
     bool setup = true;
+    bool logging = false;
 
     u32 n = 1000000;
 
     while (appletMainLoop()) {
-        bool logging = false;
         if (setup) {
             printSetupScreen(n, logging);
             while (true) {
