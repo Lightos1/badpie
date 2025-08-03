@@ -1,4 +1,4 @@
 #pragma once
 #include <switch.h>
 
-bool calculatePI(bool, u32);
+bool calculatePI(u32, u32);

@@ -2,32 +2,58 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <switch.h>
 
-bool calculatePI(const bool logging, const u32 n) {
-    u32 total = 0;
-    const u64 start = armGetSystemTick();
+volatile u32 total = 0;
+Mutex totalMutex;
 
-    consoleClear();
-    consoleUpdate(NULL);
+void threadFunction(void *arg) {
+    const u32 n = *(u32 *) arg;
+    u32 localTotal = 0;
 
-    /* This method of calculating pi is terrible, but it's bad enough so that precision doesn't run out too early. */
-    /* I do not want to deal with types above double yet. */
-    /* Don't kill me for this, it works ok and is not too optimal unlike the other method. */
     for (u32 i = 0; i < n; i++) {
-        if (logging && ((i + 1) % 10000 == 0 || i == n - 1)) {
-            printf("Loop: %d\n", i + 1);
-            consoleUpdate(NULL);
-        }
-
         const double x = ((double) rand() / RAND_MAX) * 2.0 - 1.0;
         const double y = ((double) rand() / RAND_MAX) * 2.0 - 1.0;
 
-        if ((x*x) + (y*y) <= 1.0) {
-            total++;
+        if ((x * x) + (y * y) <= 1.0) {
+            localTotal++;
         }
     }
 
+    mutexLock(&totalMutex);
+    total += localTotal;
+    mutexUnlock(&totalMutex);
+}
+
+bool calculatePI(const u32 n, const u32 threadCount) {
+    printf("Calculating PI with %d threads and %d iterations...\n", threadCount, n);
+    consoleUpdate(NULL);
+    total = 0;
+
+    mutexInit(&totalMutex);
+    Thread threads[threadCount];
+    u32 thread_args[threadCount];
+    const u32 iterationsPerThread = n / threadCount;
+
+    const u64 start = armGetSystemTick();
+    for (u32 i = 0; i < threadCount; i++) {
+        thread_args[i] = iterationsPerThread;
+
+        threadCreate(&threads[i], threadFunction, &thread_args[i],NULL, 0x4000, 0x2B, -2);
+        threadStart(&threads[i]);
+    }
+
+    for (u32 i = 0; i < threadCount; i++) {
+        threadWaitForExit(&threads[i]);
+        threadClose(&threads[i]);
+    }
+
     const u64 end = armGetSystemTick();
+
+    memset(&totalMutex, 0, sizeof(Mutex));
+    consoleClear();
+    consoleUpdate(NULL);
+
     const u64 elapsedNs = armTicksToNs(end - start);
     const double duration = elapsedNs / 1e9;
 

@@ -16,18 +16,18 @@ int main() {
 
     bool finished = false;
     bool setup = true;
-    bool logging = false;
 
     u32 n = 1000000;
+    u8 threadCount = 1;
 
     while (appletMainLoop()) {
         if (setup) {
-            printSetupScreen(n, logging);
+            printSetupScreen(n, threadCount);
             while (true) {
                 padUpdate(&pad);
                 const u64 kDown = padGetButtonsDown(&pad);
 
-                const u32 result = updateUserInputs(kDown, &n, &logging, &setup);
+                const u32 result = updateUserInputs(kDown, &n, &setup, &threadCount);
 
                 if (result == START_BENCH) {
                     break;
@@ -54,7 +54,7 @@ int main() {
             continue;
         }
 
-        finished = calculatePI(logging, n);
+        finished = calculatePI(n, threadCount);
     }
 
     return 1;
