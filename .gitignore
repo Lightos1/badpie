@@ -2,3 +2,4 @@
 *.nro
 CMakeLists.txt
 /build/
+/.idea
